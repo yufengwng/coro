@@ -4,7 +4,7 @@ use std::io;
 use std::io::Write;
 use std::process;
 
-mod vm;
+use coro::vm;
 
 const STATUS_OK: i32 = 0;
 const STATUS_COMPILE_ERR: i32 = 1;
