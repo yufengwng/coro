@@ -51,7 +51,7 @@ fn run_repl(vm: &mut vm::CoVM) -> i32 {
         let src = match repl_read() {
             Ok(s) => s,
             Err(e) => {
-                eprintln!("[coro]: {}", e);
+                eprintln!("[coro] {}", e);
                 return STATUS_GENERAL_ERR;
             }
         };
