@@ -1,0 +1,18 @@
+program  = { SOI ~ atom* ~ EOI }
+
+atom = {
+    bool | num | str | ident | unit
+}
+
+unit = @{ "()" }
+bool = @{ "true" | "false" }
+num = @{ digit+ ~ ("." ~ digit+)? }
+str = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+ident = @{ alpha ~ alnum* }
+
+digit = @{ ASCII_DIGIT }
+alpha = @{ ASCII_ALPHA | "_" }
+alnum = @{ ASCII_ALPHANUMERIC | "_" }
+
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+COMMENT = _{ "#" ~ (!NEWLINE ~ ANY)* ~ &(NEWLINE | EOI) }

@@ -3,5 +3,9 @@ name = "coro"
 version = "0.1.0"
 edition = "2021"
 
+[dependencies]
+pest = "2.1"
+pest_derive = "2.1"
+
 [features]
 debug = []
