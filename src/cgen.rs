@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crate::ast::*;
 use crate::code::Code;
 use crate::code::Instr::*;
+use crate::debug;
 use crate::value::FnDef;
 use crate::value::Value;
 
@@ -14,6 +15,7 @@ impl CoGen {
         if !ast.items.is_empty() {
             // An AST is mostly just a block.
             emit_block(&mut code, ast.items);
+            code.add(OpRet, 1);
         }
         code
     }
@@ -39,7 +41,10 @@ fn emit_block(code: &mut Code, block: Vec<Bind>) {
 
 fn emit_bind(code: &mut Code, bind: Bind) {
     match bind {
-        Bind::Def(def_bind) => emit_def(code, def_bind),
+        Bind::Def(def_bind) => {
+            emit_def(code, def_bind);
+            // stack + 1
+        }
         Bind::Let(let_bind) => {
             emit_let(code, let_bind);
             // stack + 1
@@ -54,6 +59,11 @@ fn emit_bind(code: &mut Code, bind: Bind) {
 fn emit_def(code: &mut Code, def_bind: DefBind) {
     let mut def = FnDef::with(def_bind.name, def_bind.params);
     emit_cmd(&mut def.code, def_bind.body);
+    def.code.add(OpRet, 1);
+
+    if cfg!(feature = "instr") {
+        debug::print(&def.code, def.name());
+    }
 
     let val = Value::Fn(Rc::new(def));
     let idx = code.add_const(val);
@@ -75,9 +85,18 @@ fn emit_cmd(code: &mut Code, cmd: Cmd) {
             code.add(OpPrint, 1);
             // stack + 1
         }
-        Cmd::Create(name) => todo!(),
-        Cmd::Resume(expr, args) => todo!(),
-        Cmd::Yield(expr) => todo!(),
+        Cmd::Create(name) => {
+            emit_create(code, name);
+            // stack + 1
+        }
+        Cmd::Resume(expr, args) => {
+            emit_resume(code, expr, args);
+            // stack + 1
+        }
+        Cmd::Yield(expr) => {
+            emit_yield(code, expr);
+            // stack + 1
+        }
         Cmd::While(cond, body) => {
             emit_while(code, cond, body);
             // stack + 1
@@ -91,6 +110,26 @@ fn emit_cmd(code: &mut Code, cmd: Cmd) {
             // stack + 1
         }
     }
+}
+
+fn emit_create(code: &mut Code, name: String) {
+    let name = Value::Str(name);
+    let idx = code.add_const(name);
+    code.add(OpCreate(idx), 1);
+}
+
+fn emit_resume(code: &mut Code, expr: Expr, args: Vec<Expr>) {
+    emit_expr(code, expr);
+    let num = args.len();
+    for arg in args {
+        emit_expr(code, arg);
+    }
+    code.add(OpResume(num), 1);
+}
+
+fn emit_yield(code: &mut Code, expr: Expr) {
+    emit_expr(code, expr);
+    code.add(OpYield, 1);
 }
 
 fn emit_while(code: &mut Code, cond: Expr, body: Expr) {

@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
@@ -77,7 +78,6 @@ impl CoVM {
         };
 
         if cfg!(feature = "dbg") {
-            println!("{}", co);
             println!("[coro] value: {}", val);
         }
 
@@ -128,23 +128,16 @@ impl Coro {
             println!("{}", self);
         }
 
-        self.exec()?;
-        if cfg!(feature = "stack") {
-            self.debug_stack();
-        }
-
+        let res = self.exec()?;
         if self.ip >= self.fun.code.len() {
             self.status = CoStatus::Done;
         }
 
-        let res = if !self.stack.is_empty() {
-            self.stack.pop().unwrap()
-        } else {
-            Value::Unit
-        };
-
         if cfg!(feature = "stack") {
             self.debug_stack();
+        }
+        if cfg!(feature = "dbg") {
+            println!("{}", self);
         }
 
         Ok(res)
@@ -154,6 +147,7 @@ impl Coro {
         eprint!("<ip: {:04} stack: [", self.ip);
         for value in &self.stack {
             match value {
+                Value::Str(_) => eprint!(" <str>"),
                 Value::Fn(_) => eprint!(" <fn>"),
                 Value::Co(_) => eprint!(" <co>"),
                 _ => eprint!(" {}", value),
@@ -162,7 +156,7 @@ impl Coro {
         eprintln!(" ]>");
     }
 
-    fn exec(&mut self) -> Result<(), String> {
+    fn exec(&mut self) -> Result<Value, String> {
         let code_len = self.fun.code.len();
         while self.ip < code_len {
             if cfg!(feature = "stack") {
@@ -268,6 +262,42 @@ impl Coro {
                     self.env.insert(name, val);
                     self.stack.push(Value::Unit);
                 }
+                OpCreate(idx) => {
+                    let name = self.fun.code.constant(idx);
+                    let name = name.as_str_ref();
+                    let val = match self.env.get(name) {
+                        Some(val) => val,
+                        None => return Err(format!("no binding for name '{}'", name)),
+                    };
+                    if !val.is_fn() {
+                        return Err(format!("'{}' is not a function", name));
+                    }
+                    let def = val.clone().into_fn();
+                    let coro = Self::new(def);
+                    let coro = Rc::new(RefCell::new(coro));
+                    self.stack.push(Value::Co(coro))
+                }
+                OpResume(num) => {
+                    let mut args = Vec::with_capacity(num);
+                    for _ in 0..num {
+                        let val = self.stack.pop().unwrap();
+                        args.insert(0, val);
+                    }
+                    let coro = self.stack.pop().unwrap();
+                    if !coro.is_co() {
+                        return Err(format!("only coroutines can be resumed"));
+                    }
+                    let coro = coro.into_co();
+                    self.status = CoStatus::Suspended;
+                    let val = coro.borrow_mut().resume(args)?;
+                    self.status = CoStatus::Running;
+                    self.stack.push(val);
+                }
+                OpYield => {
+                    let val = self.stack.pop().unwrap();
+                    self.status = CoStatus::Suspended;
+                    return Ok(val);
+                }
                 OpPrint => {
                     let val = self.stack.pop().unwrap();
                     self.stack.push(Value::Unit);
@@ -276,9 +306,18 @@ impl Coro {
                 OpPop => {
                     self.stack.pop();
                 }
+                OpRet => {
+                    let val = if !self.stack.is_empty() {
+                        self.stack.pop().unwrap()
+                    } else {
+                        Value::Unit
+                    };
+                    self.status = CoStatus::Done;
+                    return Ok(val);
+                }
             }
         }
-        Ok(())
+        Ok(Value::Unit)
     }
 
     fn peek(&self, distance: usize) -> &Value {
@@ -333,9 +372,14 @@ impl Coro {
                 self.env.insert(param, arg);
             }
         } else {
-            // Only one value should be yielded, and we push this onto the stack.
-            self.check_arity(1, args.len())?;
-            self.stack.push(args.into_iter().next().unwrap());
+            // At most one value (unit if none), and we push this onto the stack.
+            let arg = if !args.is_empty() {
+                self.check_arity(1, args.len())?;
+                args.into_iter().next().unwrap()
+            } else {
+                Value::Unit
+            };
+            self.stack.push(arg);
         }
         Ok(())
     }

@@ -40,6 +40,10 @@ pub fn print_instr(code: &Code, idx: usize) {
             let def = code.constant(idx);
             eprintln!("{:?} {}", instr, def);
         }
+        OpCreate(idx) => {
+            let name = code.constant(idx);
+            eprintln!("{:?} {}", instr, name);
+        }
         _ => eprintln!("{:?}", instr),
     }
 }

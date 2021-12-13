@@ -38,10 +38,18 @@ pub enum Instr {
     OpStore(usize),
     /// (idx) Lookup function using `idx`, write to env, and push unit onto stack.
     OpDefine(usize),
+    /// (idx) Lookup name of function using `idx`, and push a new coroutine onoto stack.
+    OpCreate(usize),
+    /// (num) Resume coroutine using `num` arguments from stack. Returned/yielded value will be top of stack.
+    OpResume(usize),
+    /// Suspend current coroutine and yield top of stack.
+    OpYield,
     /// Pop top of stack, print value, and push unit onto stack.
     OpPrint,
     /// Pop the top of stack.
     OpPop,
+    /// Exit coroutine, and return top of stack or unit.
+    OpRet,
 }
 
 pub struct Code {

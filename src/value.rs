@@ -94,6 +94,13 @@ impl Value {
     pub fn is_co(&self) -> bool {
         matches!(self, Self::Co(..))
     }
+
+    pub fn into_co(self) -> Rc<RefCell<Coro>> {
+        match self {
+            Value::Co(c) => c,
+            _ => panic!(),
+        }
+    }
 }
 
 pub struct FnDef {
