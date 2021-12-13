@@ -235,11 +235,8 @@ fn parse_group(pair: Pair<Rule>) -> Result<Expr, String> {
 fn parse_ident(pair: Pair<Rule>) -> Result<Expr, String> {
     match pair.as_str() {
         "def" | "let" => Err(String::from("expected proper binding")),
-        "print" | "create" | "resume" | "yield" | "end" => {
-            Err(String::from("expected proper command"))
-        }
-        "while" | "do" => Err(String::from("expected proper while command")),
-        "if" | "then" | "else" => Err(String::from("expected proper if command")),
+        "print" | "create" | "resume" | "yield" | "while" | "do" | "if" | "then" | "else"
+        | "end" => Err(String::from("expected proper command")),
         "true" | "false" => Err(String::from("expected proper expression")),
         name => Ok(Expr::Ident(String::from(name))),
     }

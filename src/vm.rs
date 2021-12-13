@@ -181,6 +181,17 @@ impl Coro {
                     let val = Value::Bool(lhs == rhs);
                     self.stack.push(val);
                 }
+                OpLoop(offset) => {
+                    self.ip -= offset;
+                }
+                OpJump(offset) => {
+                    self.ip += offset;
+                }
+                OpBranch(offset) => {
+                    if self.peek(0).is_falsey() {
+                        self.ip += offset;
+                    }
+                }
                 OpPrint => {
                     let val = self.stack.pop().unwrap();
                     self.stack.push(Value::Unit);

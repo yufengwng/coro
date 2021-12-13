@@ -14,6 +14,9 @@ pub enum Instr {
     OpNot,
     OpLt,
     OpEq,
+    OpLoop(usize),
+    OpJump(usize),
+    OpBranch(usize),
     OpPrint,
     OpPop,
 }
@@ -65,6 +68,10 @@ impl Code {
         }
         self.consts.push(value);
         idx
+    }
+
+    pub fn patch(&mut self, idx: usize, instr: Instr) {
+        self.instrs[idx] = instr;
     }
 }
 
