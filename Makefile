@@ -1,8 +1,8 @@
 build:
-	cargo build --features=ast,dbg,instr
+	cargo build --features=ast,dbg,instr,stack
 
 run:
-	cargo run --features=ast,dbg,instr
+	cargo run --features=ast,dbg,instr,stack
 
 release:
 	cargo build --release

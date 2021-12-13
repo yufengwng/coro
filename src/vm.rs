@@ -30,11 +30,7 @@ impl CoVM {
         };
 
         if cfg!(feature = "ast") {
-            if ast.items.len() > 2 {
-                eprintln!("{:#?}", ast);
-            } else {
-                eprintln!("{:?}", ast);
-            }
+            eprintln!("{:?}", ast);
         }
 
         let code = CoGen::compile(ast);
@@ -133,6 +129,9 @@ impl Coro {
         }
 
         self.exec()?;
+        if cfg!(feature = "stack") {
+            self.debug_stack();
+        }
 
         if self.ip >= self.fun.code.len() {
             self.status = CoStatus::Done;
@@ -144,12 +143,31 @@ impl Coro {
             Value::Unit
         };
 
+        if cfg!(feature = "stack") {
+            self.debug_stack();
+        }
+
         Ok(res)
+    }
+
+    pub fn debug_stack(&self) {
+        eprint!("<ip: {:04} stack: [", self.ip);
+        for value in &self.stack {
+            match value {
+                Value::Fn(_) => eprint!(" <fn>"),
+                Value::Co(_) => eprint!(" <co>"),
+                _ => eprint!(" {}", value),
+            }
+        }
+        eprintln!(" ]>");
     }
 
     fn exec(&mut self) -> Result<(), String> {
         let code_len = self.fun.code.len();
         while self.ip < code_len {
+            if cfg!(feature = "stack") {
+                self.debug_stack();
+            }
             let instr = self.fun.code.instr(self.ip);
             let instr = instr.clone();
             self.ip += 1;
