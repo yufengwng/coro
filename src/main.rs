@@ -85,7 +85,7 @@ fn repl_read() -> io::Result<String> {
             lines.push(input.to_owned());
         }
 
-        print!("| ");
+        print!("· ");
         io::stdout().flush()?;
     }
 

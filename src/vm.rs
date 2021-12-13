@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::code::Code;
-use crate::code::FnDef;
 use crate::code::Instr::*;
 use crate::debug;
 use crate::parse::CoParser;
+use crate::value::FnDef;
 use crate::value::Value;
 
 pub enum CoRes {
@@ -17,46 +17,46 @@ pub enum CoRes {
 pub struct CoVM;
 
 impl CoVM {
-    pub fn run(&mut self, _src: &str) -> CoRes {
+    pub fn run(&mut self, src: &str) -> CoRes {
         if cfg!(feature = "debug") {
-            CoParser::parse(r##"
-                # a comment
-                # another line comment
-                1 2 3.14
-                a b abc
-                true false
-                "" "a" "foo"
-                ()
-            #last comment"##);
+            let ast = match CoParser::parse(src) {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("{}", e);
+                    return CoRes::CompileErr;
+                }
+            };
 
-            let mut code = Code::new();
-            code.add(OpUnit, 1);
-            code.add(OpPrint, 1);
-            code.add(OpPop, 1);
-            code.add(OpTrue, 2);
-            code.add(OpPrint, 2);
-            code.add(OpPop, 2);
-            code.add(OpFalse, 3);
-            code.add(OpPrint, 3);
-            code.add(OpPop, 3);
-            debug::print(&code, "code");
+            println!("ast: {:?}", ast);
 
-            let mut def = FnDef::new();
-            def.code = code;
-            def.print();
-            println!();
+            // let mut code = Code::new();
+            // code.add(OpUnit, 1);
+            // code.add(OpPrint, 1);
+            // code.add(OpPop, 1);
+            // code.add(OpTrue, 2);
+            // code.add(OpPrint, 2);
+            // code.add(OpPop, 2);
+            // code.add(OpFalse, 3);
+            // code.add(OpPrint, 3);
+            // code.add(OpPop, 3);
+            // debug::print(&code, "code");
 
-            let mut co = Coro::new(Rc::new(def));
-            co.print();
-            println!();
+            // let mut def = FnDef::new();
+            // def.code = code;
+            // def.print();
+            // println!();
 
-            if let Err(msg) = co.resume(Vec::new()) {
-                eprintln!("[coro] error: {}", msg);
-                return CoRes::RuntimeErr;
-            }
+            // let mut co = Coro::new(Rc::new(def));
+            // co.print();
+            // println!();
 
-            co.print();
-            println!();
+            // if let Err(msg) = co.resume(Vec::new()) {
+            //     eprintln!("[coro] error: {}", msg);
+            //     return CoRes::RuntimeErr;
+            // }
+
+            // co.print();
+            // println!();
         }
         CoRes::Ok
     }

@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::code::FnDef;
+use crate::code::Code;
 use crate::vm::Coro;
 
 #[derive(Clone)]
@@ -64,6 +64,39 @@ impl Value {
         }
     }
 }
+
+pub struct FnDef {
+    name: String,
+    pub params: Vec<String>,
+    pub code: Code,
+}
+
+impl FnDef {
+    pub fn new() -> Self {
+        Self {
+            name: String::new(),
+            params: Vec::new(),
+            code: Code::new(),
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        if self.name.is_empty() {
+            "__main__"
+        } else {
+            &self.name
+        }
+    }
+
+    pub fn arity(&self) -> usize {
+        self.params.len()
+    }
+
+    pub fn print(&self) {
+        print!("<fn name:{} arity:{}>", self.name(), self.arity());
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
