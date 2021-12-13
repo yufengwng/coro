@@ -1,0 +1,17 @@
+# Testing printing of literal values.
+
+print ()
+print true
+print false
+print 123
+print 3.14
+print "foo"
+
+# output:
+# -------
+# unit
+# true
+# false
+# 123
+# 3.14
+# "foo"

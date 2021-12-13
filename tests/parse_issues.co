@@ -1,0 +1,14 @@
+# Some issues remaining for parsing.
+
+# Currently, parser is having trouble
+# parsing the `resume` command, likely
+# due to the variable number of args.
+
+def foo a = {
+  yield 1;
+  yield 2;
+}
+
+let co = create foo
+resume co       # <-- issue here
+resume co

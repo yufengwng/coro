@@ -1,0 +1,22 @@
+# Test basic binary expressions.
+
+print 1 + 2
+print 2 - 3
+print 3 * 4
+print 4 / 2
+
+print 1 < 2
+print 2 == 3
+
+# error
+print 5 / 0
+
+# output:
+# -------
+# 3
+# -1
+# 12
+# 2
+# true
+# false
+# [coro] runtime error: cannot divide by zero

@@ -1,0 +1,23 @@
+# Test basic binary expressions.
+
+print -2
+print --3
+print not true
+print not not true
+print not 1
+print not 2
+print not "foo"
+
+# error
+print -"bar"
+
+# output:
+# -------
+# -2
+# 3
+# false
+# true
+# false
+# false
+# false
+# [coro] runtime error: operand must be a number

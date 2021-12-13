@@ -1,0 +1,24 @@
+# Test simulating a regular function call
+# using coroutines.
+
+def greet name = {
+  print "hello";
+  print name;
+}
+
+let co = create greet
+(resume co "world")
+
+def add a b = {
+  a + b
+}
+
+let co = create add
+let c = (resume co 2 3)
+print c
+
+# output:
+# -------
+# "hello"
+# "world"
+# 5

@@ -1,0 +1,38 @@
+# An implementation of fibonacci in Coro,
+# with a test that prints the first 10.
+#
+# Demonstrates all of create/resume/yield.
+
+def fib = {
+  let a = 0;
+  let b = 1;
+  yield a;
+  yield b;
+  while true do {
+    let c = a + b;
+    let a = b;
+    let b = c;
+    yield b;
+  } end
+}
+
+let co = create fib
+
+let i = 0
+while i < 10 do {
+  print (resume co);
+  let i = i + 1;
+} end
+
+# output:
+# -------
+# 0
+# 1
+# 1
+# 2
+# 3
+# 5
+# 8
+# 13
+# 21
+# 34

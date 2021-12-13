@@ -1,0 +1,20 @@
+# Test runtime error handling of trying to
+# resume a finished coroutine.
+
+def foo = {
+  print 1;
+  # After this point coroutine is done.
+}
+
+let co = create foo
+
+# "Prime" thhe coroutine.
+(resume co)
+
+# Now trigger the error.
+(resume co)
+
+# output:
+# -------
+# 1
+# [coro] runtime error: tried to resume a non-suspended coroutine

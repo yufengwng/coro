@@ -1,0 +1,49 @@
+# A demonstration of the producer-consumer pattern.
+
+# Powers of n.
+def produce n = {
+  yield (); # Setup
+  yield 1; # n ^ 0
+  yield n; # n ^ 1
+  let p = n;
+  while true do {
+    let p = p * n;
+    yield p;
+  } end
+}
+
+# Just print for now.
+def consume p = {
+  yield (); # Setup
+  while true do {
+    print (resume p);
+    yield ();
+  } end
+}
+
+let prod = create produce
+let cons = create consume
+
+# Setup and connect the two ends.
+(resume prod 2)
+(resume cons prod)
+
+# Run a few rounds.
+let i = 0
+while i < 10 do {
+  (resume cons);
+  let i = i + 1;
+} end
+
+# output:
+# -------
+# 0
+# 2
+# 4
+# 8
+# 16
+# 32
+# 64
+# 128
+# 256
+# 512
