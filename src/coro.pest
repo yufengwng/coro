@@ -1,3 +1,10 @@
+// Language: Coro
+//
+// Syntax is stratified into three main types: bindings, commands, and
+// expressions. Only minimal set of functionality are supported right now. As
+// per usual, comments start with `#` and whitespace is ignored.
+
+// This is the start rule.
 program  = { SOI ~ bind* ~ EOI }
 
 bind = { bind_def | bind_let | cmd }
@@ -23,20 +30,27 @@ cmd_if = { "if" ~ expr ~ "then" ~ expr ~ "else" ~ expr ~ "end" }
 
 expr = { expr_rel }
 
+// Relations. No support for associativity,
+// e.g. cannot do 1 < 2 < 3.
 expr_rel = { expr_add ~ expr_rel_rhs? }
 expr_rel_rhs = { op_rel ~ expr_add }
 
+// Terms. Left associative.
 expr_add = { expr_mul ~ expr_add_rhs* }
 expr_add_rhs = { op_add ~ expr_mul }
 
+// Factors. Also left associative.
 expr_mul = { expr_uni ~ expr_mul_rhs* }
 expr_mul_rhs = { op_mul ~ expr_uni }
 
+// Unary. Right associative.
 expr_uni = { op_uni ~ expr_uni | atom }
 
+// Blocks and groups allow escaping "up" the levels.
 block = { "{" ~ bind ~ (";" ~ bind)* ~ ";"? ~ "}" }
 group = { "(" ~ cmd ~ ")" }
 
+// Primary building blocks of syntax.
 atom = {
     block
     | group
@@ -45,11 +59,13 @@ atom = {
     | unit
 }
 
+// Operators.
 op_rel = { "==" | "<" }
 op_add = { "+" | "-" }
 op_mul = { "*" | "/" }
 op_uni = { "not" | "-" }
 
+// Lexical items.
 unit = @{ "()" }
 bool = @{ "true" | "false" }
 num = @{ digit+ ~ ("." ~ digit+)? }
@@ -60,5 +76,6 @@ digit = @{ ASCII_DIGIT }
 alpha = @{ ASCII_ALPHA | "_" }
 alnum = @{ ASCII_ALPHANUMERIC | "_" }
 
+// Special rules supported by Pest.
 WHITESPACE = _{ " " | "\t" | NEWLINE }
 COMMENT = _{ "#" ~ (!NEWLINE ~ ANY)* ~ &(NEWLINE | EOI) }

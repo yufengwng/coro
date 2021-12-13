@@ -1,3 +1,14 @@
+//! This module provides the parser for Coro source code.
+//! 
+//! Under the hood, we leverage the Pest parser-generator library. Pest takes
+//! in a file written in a "parser expression grammar" (PEG). See `coro.pest`
+//! for the specification of Coro's syntax using Pest's PEG.
+//! 
+//! The Pest-generated parser does most of the heavy-lifting, and provides us
+//! with data structures which we can traverse to build our own AST. Note that
+//! when using Pest, it is considered idiomatic general practice to use
+//! `unwrap()` and `unreachable()`.
+
 use pest::iterators::Pair;
 use pest::Parser;
 
@@ -232,6 +243,8 @@ fn parse_group(pair: Pair<Rule>) -> Result<Expr, String> {
     Ok(Expr::Group(Box::new(cmd)))
 }
 
+// FIXME: Currently, Pest parser seems to be unable to properly deal with
+// keywords. Have not figured out better way to handle all cases yet.
 fn parse_ident(pair: Pair<Rule>) -> Result<Expr, String> {
     match pair.as_str() {
         "def" | "let" => Err(String::from("expected proper binding")),

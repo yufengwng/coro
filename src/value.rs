@@ -1,3 +1,12 @@
+//! This module provides data structures that represent runtime values the Coro
+//! VM operates on.
+//! 
+//! Most Coro data types and values are represented directly in Rust using Rust
+//! types. Function and coroutine objects are more complex and have their own
+//! custom representation. Since these two are objects that can be referenced
+//! in a few places, we use `Rc` and `RefCell` as a layer of indirection to
+//! work better with Rust's ownership system.
+
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;

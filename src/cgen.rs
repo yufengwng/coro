@@ -1,3 +1,10 @@
+//! This module is for the code generator (codegen) that translates the high-level AST into
+//! lower-level "linear instructions".
+//! 
+//! The main task here is to traverse the syntax tree and "compile" each item to corresponding
+//! instructions. We keep things simple by focusing on individual items at a time to ensure we
+//! get the semantics correct. Therefore, we assume the AST is correct and type-checks.
+
 use std::rc::Rc;
 
 use crate::ast::*;

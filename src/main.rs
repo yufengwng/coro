@@ -46,7 +46,7 @@ fn run_file(path: &str) -> i32 {
 }
 
 fn run_repl() -> i32 {
-    let mut comain = CoVM::build("").unwrap();
+    let mut main_co = CoVM::build("").unwrap();
     println!("[coro-lang]");
 
     loop {
@@ -69,8 +69,8 @@ fn run_repl() -> i32 {
             }
         };
 
-        CoVM::rewind(&mut comain, def);
-        let val = match CoVM::run(&mut comain) {
+        CoVM::rewind(&mut main_co, def);
+        let val = match CoVM::run(&mut main_co) {
             Ok(val) => val,
             Err(msg) => {
                 eprintln!("[coro] runtime error: {}", msg);
