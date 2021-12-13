@@ -1,9 +1,9 @@
 //! This module provides the parser for Coro source code.
-//! 
+//!
 //! Under the hood, we leverage the Pest parser-generator library. Pest takes
 //! in a file written in a "parser expression grammar" (PEG). See `coro.pest`
 //! for the specification of Coro's syntax using Pest's PEG.
-//! 
+//!
 //! The Pest-generated parser does most of the heavy-lifting, and provides us
 //! with data structures which we can traverse to build our own AST. Note that
 //! when using Pest, it is considered idiomatic general practice to use
@@ -16,29 +16,27 @@ use crate::ast::*;
 
 #[derive(Parser)]
 #[grammar = "coro.pest"]
-struct PEGParser;
+struct CoroParser;
 
-pub struct CoParser;
+/// Main entry point to parsing. This produces an AST object, or returns a
+/// parsing error message.
+pub fn parse_ast(src: &str) -> Result<Ast, String> {
+    let mut ast = Ast::new();
+    let mut start = match CoroParser::parse(Rule::program, src) {
+        Err(e) => return Err(format!("{}", e)),
+        Ok(p) => p,
+    };
 
-impl CoParser {
-    pub fn parse(src: &str) -> Result<Ast, String> {
-        let mut ast = Ast::new();
-        let mut start = match PEGParser::parse(Rule::program, src) {
-            Err(e) => return Err(format!("{}", e)),
-            Ok(p) => p,
-        };
-
-        let program = start.next().unwrap();
-        let iter = program.into_inner();
-        for pair in iter {
-            match pair.as_rule() {
-                Rule::bind => ast.items.push(parse_bind(pair)?),
-                Rule::EOI => break,
-                _ => unreachable!(),
-            }
+    let program = start.next().unwrap();
+    let iter = program.into_inner();
+    for pair in iter {
+        match pair.as_rule() {
+            Rule::bind => ast.items.push(parse_bind(pair)?),
+            Rule::EOI => break,
+            _ => unreachable!(),
         }
-        Ok(ast)
     }
+    Ok(ast)
 }
 
 fn parse_bind(pair: Pair<Rule>) -> Result<Bind, String> {
@@ -261,7 +259,7 @@ mod tests {
 
     macro_rules! ast_eq {
         ($src:expr, $expected:expr) => {
-            let ast = CoParser::parse($src).unwrap();
+            let ast = parse_ast($src).unwrap();
             let dbg = format!("{:?}", ast);
             let exp = format!("Ast {{ items: [{}] }}", $expected);
             assert_eq!(dbg, exp);
@@ -271,14 +269,14 @@ mod tests {
     #[test]
     fn empty() {
         let src = "";
-        let ast = CoParser::parse(src).unwrap();
+        let ast = parse_ast(src).unwrap();
         assert!(ast.items.is_empty());
     }
 
     #[test]
     fn blanks() {
         let src = "    \t  \t \r \n \r\n";
-        let ast = CoParser::parse(src).unwrap();
+        let ast = parse_ast(src).unwrap();
         assert!(ast.items.is_empty());
     }
 
@@ -288,7 +286,7 @@ mod tests {
             # a comment
             # another line
         "##;
-        let ast = CoParser::parse(src).unwrap();
+        let ast = parse_ast(src).unwrap();
         assert!(ast.items.is_empty());
     }
 
@@ -438,20 +436,20 @@ mod tests {
     #[should_panic]
     fn binary_relation_no_associativity() {
         let src = "1 == 2 < 3";
-        CoParser::parse(src).unwrap();
+        parse_ast(src).unwrap();
     }
 
     #[test]
     #[should_panic]
     fn command_create_only_ident() {
         let src = "create (not an_ident)";
-        CoParser::parse(src).unwrap();
+        parse_ast(src).unwrap();
     }
 
     #[test]
     #[should_panic]
     fn bad_input() {
         let src = "if true then missing_rest_of_if ";
-        CoParser::parse(src).unwrap();
+        parse_ast(src).unwrap();
     }
 }

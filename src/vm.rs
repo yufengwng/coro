@@ -11,10 +11,10 @@ use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
-use crate::cgen::CoGen;
+use crate::cgen;
 use crate::code::Instr::*;
 use crate::debug;
-use crate::parse::CoParser;
+use crate::parse;
 use crate::value::FnDef;
 use crate::value::Value;
 
@@ -33,7 +33,7 @@ impl CoVM {
     }
 
     pub fn compile(src: &str) -> Result<Rc<FnDef>, String> {
-        let ast = match CoParser::parse(src) {
+        let ast = match parse::parse_ast(src) {
             Ok(tree) => tree,
             Err(e) => return Err(format!("{}", e)),
         };
@@ -42,7 +42,7 @@ impl CoVM {
             eprintln!("{:?}", ast);
         }
 
-        let code = CoGen::compile(ast);
+        let code = cgen::compile(ast);
         let mut def = FnDef::new();
         def.code = code;
 

@@ -1,6 +1,6 @@
 //! This module is for the code generator (codegen) that translates the high-level AST into
 //! lower-level "linear instructions".
-//! 
+//!
 //! The main task here is to traverse the syntax tree and "compile" each item to corresponding
 //! instructions. We keep things simple by focusing on individual items at a time to ensure we
 //! get the semantics correct. Therefore, we assume the AST is correct and type-checks.
@@ -14,18 +14,15 @@ use crate::debug;
 use crate::value::FnDef;
 use crate::value::Value;
 
-pub struct CoGen;
-
-impl CoGen {
-    pub fn compile(ast: Ast) -> Code {
-        let mut code = Code::new();
-        if !ast.items.is_empty() {
-            // An AST is mostly just a block.
-            emit_block(&mut code, ast.items);
-            code.add(OpRet, 1);
-        }
-        code
+/// Main entry point to compiling AST to instructions.
+pub fn compile(ast: Ast) -> Code {
+    let mut code = Code::new();
+    if !ast.items.is_empty() {
+        // An AST is mostly just a block.
+        emit_block(&mut code, ast.items);
+        code.add(OpRet, 1);
     }
+    code
 }
 
 fn emit_block(code: &mut Code, block: Vec<Bind>) {
