@@ -8,11 +8,28 @@ pub struct CoGen {}
 impl CoGen {
     pub fn compile(ast: Ast) -> Code {
         let mut code = Code::new();
-        for bind in ast.items {
-            emit_bind(&mut code, bind);
-        }
+        // An AST is mostly just a block.
+        emit_block(&mut code, ast.items);
         code
     }
+}
+
+fn emit_block(code: &mut Code, block: Vec<Bind>) {
+    let len = block.len();
+    let mut iter = block.into_iter();
+
+    for _ in 0..(len - 1) {
+        // Compile and discard the value of each item except the last.
+        let bind = iter.next().unwrap();
+        emit_bind(code, bind);
+        code.add(OpPop, 1);
+    }
+
+    // Block should have at least one item.
+    let last = iter.next().unwrap();
+    emit_bind(code, last);
+
+    // Last value produced is the value of the block, so no pop.
 }
 
 fn emit_bind(code: &mut Code, bind: Bind) {
@@ -125,7 +142,10 @@ fn backpatch(code: &mut Code, idx: usize, is_jump: bool) {
 
 fn emit_expr(code: &mut Code, expr: Expr) {
     match expr {
-        Expr::Block(binds) => todo!(),
+        Expr::Block(binds) => {
+            emit_block(code, binds);
+            // stack + 1
+        }
         Expr::Group(inner) => {
             emit_cmd(code, *inner);
             // stack + 1

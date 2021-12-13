@@ -63,9 +63,9 @@ pub enum CoStatus {
 }
 
 pub struct Coro {
-    status: CoStatus,
     ip: usize,
     fun: Rc<FnDef>,
+    status: CoStatus,
     env: HashMap<String, Value>,
     stack: Vec<Value>,
 }
@@ -81,9 +81,9 @@ impl fmt::Display for Coro {
 impl Coro {
     pub fn new(fun: Rc<FnDef>) -> Self {
         Self {
-            status: CoStatus::Suspended,
             ip: 0,
             fun,
+            status: CoStatus::Suspended,
             env: HashMap::new(),
             stack: Vec::new(),
         }
