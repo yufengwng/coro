@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::rc::Rc;
 
+use crate::cgen::CoGen;
 use crate::code::Code;
 use crate::code::Instr::*;
 use crate::debug;
@@ -20,43 +22,34 @@ impl CoVM {
     pub fn run(&mut self, src: &str) -> CoRes {
         if cfg!(feature = "debug") {
             let ast = match CoParser::parse(src) {
-                Ok(p) => p,
+                Ok(tree) => tree,
                 Err(e) => {
                     eprintln!("{}", e);
                     return CoRes::CompileErr;
                 }
             };
-
             println!("ast: {:?}", ast);
 
-            // let mut code = Code::new();
-            // code.add(OpUnit, 1);
-            // code.add(OpPrint, 1);
-            // code.add(OpPop, 1);
-            // code.add(OpTrue, 2);
-            // code.add(OpPrint, 2);
-            // code.add(OpPop, 2);
-            // code.add(OpFalse, 3);
-            // code.add(OpPrint, 3);
-            // code.add(OpPop, 3);
-            // debug::print(&code, "code");
+            let code = CoGen::compile(ast);
+            debug::print(&code, "code");
 
-            // let mut def = FnDef::new();
-            // def.code = code;
-            // def.print();
-            // println!();
+            let mut def = FnDef::new();
+            def.code = code;
+            println!("{}", def);
 
-            // let mut co = Coro::new(Rc::new(def));
-            // co.print();
-            // println!();
+            let mut co = Coro::new(Rc::new(def));
+            println!("{}", co);
 
-            // if let Err(msg) = co.resume(Vec::new()) {
-            //     eprintln!("[coro] error: {}", msg);
-            //     return CoRes::RuntimeErr;
-            // }
+            let val = match co.resume(Vec::new()) {
+                Err(msg) => {
+                    eprintln!("[coro] error: {}", msg);
+                    return CoRes::RuntimeErr;
+                }
+                Ok(val) => val,
+            };
 
-            // co.print();
-            // println!();
+            println!("{}", co);
+            println!("[coro] value: {}", val);
         }
         CoRes::Ok
     }
@@ -77,6 +70,14 @@ pub struct Coro {
     stack: Vec<Value>,
 }
 
+impl fmt::Display for Coro {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let status = format!("{:?}", self.status);
+        let status = status.to_lowercase();
+        write!(f, "<coro fn:{} status:{}>", self.fun.name(), status)
+    }
+}
+
 impl Coro {
     pub fn new(fun: Rc<FnDef>) -> Self {
         Self {
@@ -88,20 +89,13 @@ impl Coro {
         }
     }
 
-    pub fn print(&self) {
-        let status = format!("{:?}", self.status);
-        let status = status.to_lowercase();
-        print!("<co fn:{} status:{}>", self.fun.name(), status);
-    }
-
     pub fn resume(&mut self, args: Vec<Value>) -> Result<Value, String> {
         self.check_status()?;
         self.handle_inputs(args)?;
 
         self.status = CoStatus::Running;
         if cfg!(feature = "debug") {
-            self.print();
-            println!();
+            println!("{}", self);
         }
 
         self.exec()?;
@@ -122,16 +116,75 @@ impl Coro {
         let code_len = self.fun.code.len();
         while self.ip < code_len {
             let instr = self.fun.code.instr(self.ip);
+            let instr = instr.clone();
             self.ip += 1;
             match instr {
                 OpUnit => self.stack.push(Value::Unit),
                 OpTrue => self.stack.push(Value::Bool(true)),
                 OpFalse => self.stack.push(Value::Bool(false)),
+                OpConst(idx) => {
+                    let val = self.fun.code.constant(idx);
+                    self.stack.push(val.clone());
+                }
+                OpAdd => {
+                    self.check_bin_operands()?;
+                    let rhs = self.stack.pop().unwrap().as_num();
+                    let lhs = self.stack.pop().unwrap().as_num();
+                    let val = Value::Num(lhs + rhs);
+                    self.stack.push(val);
+                }
+                OpSub => {
+                    self.check_bin_operands()?;
+                    let rhs = self.stack.pop().unwrap().as_num();
+                    let lhs = self.stack.pop().unwrap().as_num();
+                    let val = Value::Num(lhs - rhs);
+                    self.stack.push(val);
+                }
+                OpMul => {
+                    self.check_bin_operands()?;
+                    let rhs = self.stack.pop().unwrap().as_num();
+                    let lhs = self.stack.pop().unwrap().as_num();
+                    let val = Value::Num(lhs * rhs);
+                    self.stack.push(val);
+                }
+                OpDiv => {
+                    self.check_bin_operands()?;
+                    let rhs = self.stack.pop().unwrap().as_num();
+                    let lhs = self.stack.pop().unwrap().as_num();
+                    if rhs == 0.0 {
+                        return Err("cannot divide by zero".to_owned());
+                    }
+                    let val = Value::Num(lhs / rhs);
+                    self.stack.push(val);
+                }
+                OpNeg => {
+                    self.check_uni_operands()?;
+                    let val = self.stack.pop().unwrap().as_num();
+                    let val = Value::Num(-val);
+                    self.stack.push(val);
+                }
+                OpNot => {
+                    let val = self.stack.pop().unwrap();
+                    let val = Value::Bool(val.is_falsey());
+                    self.stack.push(val);
+                }
+                OpLt => {
+                    self.check_bin_operands()?;
+                    let rhs = self.stack.pop().unwrap().as_num();
+                    let lhs = self.stack.pop().unwrap().as_num();
+                    let val = Value::Bool(lhs < rhs);
+                    self.stack.push(val);
+                }
+                OpEq => {
+                    let rhs = self.stack.pop().unwrap();
+                    let lhs = self.stack.pop().unwrap();
+                    let val = Value::Bool(lhs == rhs);
+                    self.stack.push(val);
+                }
                 OpPrint => {
                     let val = self.stack.pop().unwrap();
                     self.stack.push(Value::Unit);
-                    val.print();
-                    println!();
+                    println!("{}", val);
                 }
                 OpPop => {
                     self.stack.pop();
@@ -139,6 +192,10 @@ impl Coro {
             }
         }
         Ok(())
+    }
+
+    fn peek(&self, distance: usize) -> &Value {
+        &self.stack[self.stack.len() - distance - 1]
     }
 
     fn check_status(&self) -> Result<(), String> {
@@ -153,9 +210,27 @@ impl Coro {
         if arity != args_len {
             Err(format!(
                 "expected {} arguments but got {} when resuming coroutine",
-                arity,
-                args_len
+                arity, args_len
             ))
+        } else {
+            Ok(())
+        }
+    }
+
+    fn check_uni_operands(&self) -> Result<(), String> {
+        let val = self.peek(0);
+        if !val.is_num() {
+            Err("operand must be a number".to_owned())
+        } else {
+            Ok(())
+        }
+    }
+
+    fn check_bin_operands(&self) -> Result<(), String> {
+        let lhs = self.peek(1);
+        let rhs = self.peek(0);
+        if !lhs.is_num() || !rhs.is_num() {
+            Err("operands must be numbers".to_owned())
         } else {
             Ok(())
         }

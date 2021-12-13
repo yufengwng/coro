@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::fmt;
 use std::rc::Rc;
 
 use crate::code::Code;
@@ -12,6 +13,19 @@ pub enum Value {
     Str(String),
     Fn(Rc<FnDef>),
     Co(Rc<RefCell<Coro>>),
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unit => write!(f, "unit"),
+            Self::Bool(b) => write!(f, "{}", b),
+            Self::Num(n) => write!(f, "{}", n),
+            Self::Str(s) => write!(f, "\"{}\"", s),
+            Self::Fn(def) => def.fmt(f),
+            Self::Co(coro) => coro.borrow().fmt(f),
+        }
+    }
 }
 
 impl PartialEq for Value {
@@ -37,8 +51,15 @@ impl Value {
         }
     }
 
-    pub fn is_num(self) -> bool {
+    pub fn is_num(&self) -> bool {
         matches!(self, Self::Num(..))
+    }
+
+    pub fn as_num(self) -> f64 {
+        match self {
+            Self::Num(n) => n,
+            _ => panic!(),
+        }
     }
 
     pub fn is_str(&self) -> bool {
@@ -52,23 +73,18 @@ impl Value {
     pub fn is_co(&self) -> bool {
         matches!(self, Self::Co(..))
     }
-
-    pub fn print(&self) {
-        match self {
-            Self::Unit => print!("unit"),
-            Self::Bool(b) => print!("{}", b),
-            Self::Num(n) => print!("{}", n),
-            Self::Str(s) => print!("\"{}\"", s),
-            Self::Fn(f) => f.print(),
-            Self::Co(c) => c.borrow().print(),
-        }
-    }
 }
 
 pub struct FnDef {
     name: String,
     pub params: Vec<String>,
     pub code: Code,
+}
+
+impl fmt::Display for FnDef {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<fn name:{} arity:{}>", self.name(), self.arity())
+    }
 }
 
 impl FnDef {
@@ -91,12 +107,7 @@ impl FnDef {
     pub fn arity(&self) -> usize {
         self.params.len()
     }
-
-    pub fn print(&self) {
-        print!("<fn name:{} arity:{}>", self.name(), self.arity());
-    }
 }
-
 
 #[cfg(test)]
 mod tests {

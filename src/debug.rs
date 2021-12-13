@@ -1,4 +1,5 @@
 use crate::code::Code;
+use crate::code::Instr::*;
 
 pub fn print(code: &Code, name: &str) {
     eprintln!("== {} ==", name);
@@ -21,5 +22,12 @@ pub fn print_instr(code: &Code, idx: usize) {
     }
 
     // instruction
-    eprintln!("{:?}", code.instr(idx));
+    let instr = code.instr(idx).clone();
+    match instr {
+        OpConst(const_idx) => {
+            let val = code.constant(const_idx);
+            eprintln!("{:?} {}", instr, val);
+        }
+        _ => eprintln!("{:?}", instr),
+    }
 }

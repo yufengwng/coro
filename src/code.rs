@@ -1,10 +1,19 @@
 use crate::value::Value;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Instr {
     OpUnit,
     OpTrue,
     OpFalse,
+    OpConst(usize),
+    OpAdd,
+    OpSub,
+    OpMul,
+    OpDiv,
+    OpNeg,
+    OpNot,
+    OpLt,
+    OpEq,
     OpPrint,
     OpPop,
 }
