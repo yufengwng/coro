@@ -31,8 +31,8 @@ impl DefBind {
 
 #[derive(Debug)]
 pub struct LetBind {
-    name: String,
-    init: Cmd,
+    pub name: String,
+    pub init: Cmd,
 }
 
 impl LetBind {

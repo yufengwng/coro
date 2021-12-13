@@ -3,13 +3,15 @@ use crate::code::Code;
 use crate::code::Instr::*;
 use crate::value::Value;
 
-pub struct CoGen {}
+pub struct CoGen;
 
 impl CoGen {
     pub fn compile(ast: Ast) -> Code {
         let mut code = Code::new();
-        // An AST is mostly just a block.
-        emit_block(&mut code, ast.items);
+        if !ast.items.is_empty() {
+            // An AST is mostly just a block.
+            emit_block(&mut code, ast.items);
+        }
         code
     }
 }
@@ -35,17 +37,26 @@ fn emit_block(code: &mut Code, block: Vec<Bind>) {
 fn emit_bind(code: &mut Code, bind: Bind) {
     match bind {
         Bind::Def(def_bind) => emit_def(code, def_bind),
-        Bind::Let(let_bind) => emit_let(code, let_bind),
-        Bind::Cmd(cmd) => emit_cmd(code, cmd),
+        Bind::Let(let_bind) => {
+            emit_let(code, let_bind);
+            // stack + 1
+        }
+        Bind::Cmd(cmd) => {
+            emit_cmd(code, cmd);
+            // stack + 1
+        }
     }
-}
-
-fn emit_let(code: &mut Code, let_bind: LetBind) {
-    todo!()
 }
 
 fn emit_def(code: &mut Code, def_bind: DefBind) {
     todo!()
+}
+
+fn emit_let(code: &mut Code, let_bind: LetBind) {
+    emit_cmd(code, let_bind.init);
+    let name = Value::Str(let_bind.name);
+    let idx = code.add_const(name);
+    code.add(OpStore(idx), 1);
 }
 
 fn emit_cmd(code: &mut Code, cmd: Cmd) {
@@ -150,7 +161,12 @@ fn emit_expr(code: &mut Code, expr: Expr) {
             emit_cmd(code, *inner);
             // stack + 1
         }
-        Expr::Ident(name) => todo!(),
+        Expr::Ident(name) => {
+            let name = Value::Str(name);
+            let idx = code.add_const(name);
+            code.add(OpLoad(idx), 1);
+            // stack + 1
+        }
         Expr::Lt(lhs, rhs) => {
             emit_expr(code, *lhs);
             emit_expr(code, *rhs);

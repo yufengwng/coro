@@ -2,22 +2,43 @@ use crate::value::Value;
 
 #[derive(Debug, Clone)]
 pub enum Instr {
+    /// Push a unit value onto stack.
     OpUnit,
+    /// Push a true value onto stack.
     OpTrue,
+    /// Push a false value onto stack.
     OpFalse,
+    /// (idx) Lookup constant value using `idx` and push onto stack.
     OpConst(usize),
+    /// Pop 2 operands and push sum onto stack.
     OpAdd,
+    /// Pop 2 operands and push difference onto stack.
     OpSub,
+    /// Pop 2 operands and push product onto stack.
     OpMul,
+    /// Pop 2 operands and push quotient onto stack.
     OpDiv,
+    /// Pop an operand and push its numeric negation onto stack.
     OpNeg,
+    /// Pop an operand and push its boolean negation onto stack.
     OpNot,
+    /// Pop 2 operands, compare less, and push boolean onto stack.
     OpLt,
+    /// Pop 2 operands, compare equals, and push boolean onto stack.
     OpEq,
+    /// (offset) Jump backwards with `offset` amount of instructions.
     OpLoop(usize),
+    /// (offset) Jump forwards with `offset` amount of instructions.
     OpJump(usize),
+    /// (offset) Conditional forward jump if top of stack is false.
     OpBranch(usize),
+    /// (idx) Lookup name using `idx` and push onto stack the value bound in env.
+    OpLoad(usize),
+    /// (idx) Lookup name using `idx`, write top of stack to env, and push unit onto stack.
+    OpStore(usize),
+    /// Pop top of stack, print value, and push unit onto stack.
     OpPrint,
+    /// Pop the top of stack.
     OpPop,
 }
 

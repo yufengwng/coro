@@ -55,7 +55,7 @@ impl Value {
         matches!(self, Self::Num(..))
     }
 
-    pub fn as_num(self) -> f64 {
+    pub fn into_num(self) -> f64 {
         match self {
             Self::Num(n) => n,
             _ => panic!(),
@@ -64,6 +64,20 @@ impl Value {
 
     pub fn is_str(&self) -> bool {
         matches!(self, Self::Str(..))
+    }
+
+    pub fn as_str_ref(&self) -> &str {
+        match self {
+            Self::Str(s) => s,
+            _ => panic!(),
+        }
+    }
+
+    pub fn into_str(self) -> String {
+        match self {
+            Self::Str(s) => s,
+            _ => panic!(),
+        }
     }
 
     pub fn is_fn(&self) -> bool {
@@ -83,7 +97,7 @@ pub struct FnDef {
 
 impl fmt::Display for FnDef {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<fn name:{} arity:{}>", self.name(), self.arity())
+        write!(f, "<fn name: {} arity: {}>", self.name(), self.arity())
     }
 }
 

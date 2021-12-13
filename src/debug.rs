@@ -2,7 +2,7 @@ use crate::code::Code;
 use crate::code::Instr::*;
 
 pub fn print(code: &Code, name: &str) {
-    eprintln!("== {} ==", name);
+    eprintln!("== instr: {} ==", name);
     let mut idx = 0;
     while idx < code.len() {
         print_instr(code, idx);
@@ -24,9 +24,17 @@ pub fn print_instr(code: &Code, idx: usize) {
     // instruction
     let instr = code.instr(idx).clone();
     match instr {
-        OpConst(const_idx) => {
-            let val = code.constant(const_idx);
+        OpConst(idx) => {
+            let val = code.constant(idx);
             eprintln!("{:?} {}", instr, val);
+        }
+        OpLoad(idx) => {
+            let name = code.constant(idx);
+            eprintln!("{:?} {}", instr, name);
+        }
+        OpStore(idx) => {
+            let name = code.constant(idx);
+            eprintln!("{:?} {}", instr, name);
         }
         _ => eprintln!("{:?}", instr),
     }

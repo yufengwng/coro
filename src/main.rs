@@ -4,7 +4,8 @@ use std::io;
 use std::io::Write;
 use std::process;
 
-use coro::vm;
+use coro::vm::CoRes;
+use coro::vm::CoVM;
 
 const STATUS_OK: i32 = 0;
 const STATUS_COMPILE_ERR: i32 = 1;
@@ -19,17 +20,16 @@ fn main() {
         process::exit(STATUS_USAGE_ERR);
     }
 
-    let mut vm = vm::CoVM;
     let status = if args.len() > 1 {
-        run_file(&mut vm, &args[1])
+        run_file(&args[1])
     } else {
-        run_repl(&mut vm)
+        run_repl()
     };
 
     process::exit(status);
 }
 
-fn run_file(vm: &mut vm::CoVM, path: &str) -> i32 {
+fn run_file(path: &str) -> i32 {
     let src = match fs::read_to_string(path) {
         Ok(s) => s,
         Err(e) => {
@@ -38,15 +38,17 @@ fn run_file(vm: &mut vm::CoVM, path: &str) -> i32 {
             return STATUS_GENERAL_ERR;
         }
     };
-    match vm.run(&src) {
-        vm::CoRes::Ok => STATUS_OK,
-        vm::CoRes::CompileErr => STATUS_COMPILE_ERR,
-        vm::CoRes::RuntimeErr => STATUS_RUNTIME_ERR,
+    match CoVM::eval(&src) {
+        CoRes::Ok => STATUS_OK,
+        CoRes::CompileErr => STATUS_COMPILE_ERR,
+        CoRes::RuntimeErr => STATUS_RUNTIME_ERR,
     }
 }
 
-fn run_repl(vm: &mut vm::CoVM) -> i32 {
+fn run_repl() -> i32 {
+    let mut comain = CoVM::build("").unwrap();
     println!("[coro-lang]");
+
     loop {
         let src = match repl_read() {
             Ok(s) => s,
@@ -58,7 +60,28 @@ fn run_repl(vm: &mut vm::CoVM) -> i32 {
         if src.is_empty() {
             continue;
         }
-        vm.run(&src);
+
+        let def = match CoVM::compile(&src) {
+            Ok(rc) => rc,
+            Err(e) => {
+                eprintln!("[coro] compile error:\n{}", e);
+                continue;
+            }
+        };
+
+        CoVM::rewind(&mut comain, def);
+        let val = match CoVM::run(&mut comain) {
+            Ok(val) => val,
+            Err(msg) => {
+                eprintln!("[coro] runtime error: {}", msg);
+                continue;
+            }
+        };
+
+        if cfg!(feature = "dbg") {
+            eprintln!("{}", comain);
+            eprintln!("[coro] value: {}", val);
+        }
     }
 }
 
