@@ -18,9 +18,9 @@ pub enum Bind {
 
 #[derive(Debug)]
 pub struct DefBind {
-    name: String,
-    params: Vec<String>,
-    body: Cmd,
+    pub name: String,
+    pub params: Vec<String>,
+    pub body: Cmd,
 }
 
 impl DefBind {

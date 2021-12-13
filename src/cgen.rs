@@ -1,6 +1,9 @@
+use std::rc::Rc;
+
 use crate::ast::*;
 use crate::code::Code;
 use crate::code::Instr::*;
+use crate::value::FnDef;
 use crate::value::Value;
 
 pub struct CoGen;
@@ -49,7 +52,13 @@ fn emit_bind(code: &mut Code, bind: Bind) {
 }
 
 fn emit_def(code: &mut Code, def_bind: DefBind) {
-    todo!()
+    let mut def = FnDef::with(def_bind.name, def_bind.params);
+    emit_cmd(&mut def.code, def_bind.body);
+
+    let val = Value::Fn(Rc::new(def));
+    let idx = code.add_const(val);
+
+    code.add(OpDefine(idx), 1);
 }
 
 fn emit_let(code: &mut Code, let_bind: LetBind) {

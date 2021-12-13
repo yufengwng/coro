@@ -36,6 +36,8 @@ pub enum Instr {
     OpLoad(usize),
     /// (idx) Lookup name using `idx`, write top of stack to env, and push unit onto stack.
     OpStore(usize),
+    /// (idx) Lookup function using `idx`, write to env, and push unit onto stack.
+    OpDefine(usize),
     /// Pop top of stack, print value, and push unit onto stack.
     OpPrint,
     /// Pop the top of stack.

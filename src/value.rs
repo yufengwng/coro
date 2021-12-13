@@ -84,6 +84,13 @@ impl Value {
         matches!(self, Self::Fn(..))
     }
 
+    pub fn into_fn(self) -> Rc<FnDef> {
+        match self {
+            Self::Fn(f) => f,
+            _ => panic!(),
+        }
+    }
+
     pub fn is_co(&self) -> bool {
         matches!(self, Self::Co(..))
     }
@@ -91,7 +98,7 @@ impl Value {
 
 pub struct FnDef {
     name: String,
-    pub params: Vec<String>,
+    params: Vec<String>,
     pub code: Code,
 }
 
@@ -110,6 +117,14 @@ impl FnDef {
         }
     }
 
+    pub fn with(name: String, params: Vec<String>) -> Self {
+        Self {
+            name,
+            params,
+            code: Code::new(),
+        }
+    }
+
     pub fn name(&self) -> &str {
         if self.name.is_empty() {
             "__main__"
@@ -120,6 +135,14 @@ impl FnDef {
 
     pub fn arity(&self) -> usize {
         self.params.len()
+    }
+
+    pub fn params(&self) -> &[String] {
+        &self.params
+    }
+
+    pub fn param(&self, idx: usize) -> &String {
+        &self.params[idx]
     }
 }
 

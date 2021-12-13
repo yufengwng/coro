@@ -242,6 +242,14 @@ impl Coro {
                     self.env.insert(name, val);
                     self.stack.push(Value::Unit);
                 }
+                OpDefine(idx) => {
+                    let def = self.fun.code.constant(idx);
+                    let def = def.clone().into_fn();
+                    let name = def.name().to_owned();
+                    let val = Value::Fn(def);
+                    self.env.insert(name, val);
+                    self.stack.push(Value::Unit);
+                }
                 OpPrint => {
                     let val = self.stack.pop().unwrap();
                     self.stack.push(Value::Unit);
@@ -303,7 +311,7 @@ impl Coro {
             let arity = self.fun.arity();
             self.check_arity(arity, args.len())?;
             for (i, arg) in args.into_iter().enumerate() {
-                let param = self.fun.params[i].clone();
+                let param = self.fun.param(i).clone();
                 self.env.insert(param, arg);
             }
         } else {
