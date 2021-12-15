@@ -24,13 +24,23 @@ pub enum Value {
     Co(Rc<RefCell<Coro>>),
 }
 
-impl fmt::Display for Value {
+impl fmt::Debug for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Unit => write!(f, "unit"),
+            Self::Str(s) => write!(f, "\"{}\"", s),
+            _ => fmt::Display::fmt(&self, f),
+        }
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unit => write!(f, "()"),
             Self::Bool(b) => write!(f, "{}", b),
             Self::Num(n) => write!(f, "{}", n),
-            Self::Str(s) => write!(f, "\"{}\"", s),
+            Self::Str(s) => write!(f, "{}", s),
             Self::Fn(def) => def.fmt(f),
             Self::Co(coro) => coro.borrow().fmt(f),
         }
@@ -106,7 +116,7 @@ impl Value {
 
     pub fn into_co(self) -> Rc<RefCell<Coro>> {
         match self {
-            Value::Co(c) => c,
+            Self::Co(c) => c,
             _ => panic!(),
         }
     }

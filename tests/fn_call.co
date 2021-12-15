@@ -19,6 +19,6 @@ print c
 
 # output:
 # -------
-# "hello"
-# "world"
+# hello
+# world
 # 5

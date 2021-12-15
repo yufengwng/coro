@@ -14,4 +14,4 @@ print "foo"
 # false
 # 123
 # 3.14
-# "foo"
+# foo

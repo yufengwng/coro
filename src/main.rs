@@ -79,7 +79,7 @@ fn run_repl() -> i32 {
         };
 
         if cfg!(feature = "dbg") {
-            eprintln!("[coro] value: {}", val);
+            eprintln!("[coro] value: {:?}", val);
         }
     }
 }

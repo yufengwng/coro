@@ -87,7 +87,7 @@ impl CoVM {
         };
 
         if cfg!(feature = "dbg") {
-            println!("[coro] value: {}", val);
+            println!("[coro] value: {:?}", val);
         }
 
         CoRes::Ok
@@ -159,7 +159,7 @@ impl Coro {
                 Value::Str(_) => eprint!(" <str>"),
                 Value::Fn(_) => eprint!(" <fn>"),
                 Value::Co(_) => eprint!(" <co>"),
-                _ => eprint!(" {}", value),
+                _ => eprint!(" {:?}", value),
             }
         }
         eprintln!(" ]>");

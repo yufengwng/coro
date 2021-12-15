@@ -28,23 +28,23 @@ pub fn print_instr(code: &Code, idx: usize) {
     match instr {
         OpConst(idx) => {
             let val = code.constant(idx);
-            eprintln!("{:?} {}", instr, val);
+            eprintln!("{:?} {:?}", instr, val);
         }
         OpLoad(idx) => {
             let name = code.constant(idx);
-            eprintln!("{:?} {}", instr, name);
+            eprintln!("{:?} {:?}", instr, name);
         }
         OpStore(idx) => {
             let name = code.constant(idx);
-            eprintln!("{:?} {}", instr, name);
+            eprintln!("{:?} {:?}", instr, name);
         }
         OpDefine(idx) => {
             let def = code.constant(idx);
-            eprintln!("{:?} {}", instr, def);
+            eprintln!("{:?} {:?}", instr, def);
         }
         OpCreate(idx) => {
-            let name = code.constant(idx);
-            eprintln!("{:?} {}", instr, name);
+            let ident = code.constant(idx);
+            eprintln!("{:?} {:?}", instr, ident);
         }
         _ => eprintln!("{:?}", instr),
     }

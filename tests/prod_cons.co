@@ -2,9 +2,9 @@
 
 # Powers of n.
 def produce n = {
-  yield (); # Setup
-  yield 1; # n ^ 0
-  yield n; # n ^ 1
+  yield (); # setup
+  yield 1;  # n ^ 0
+  yield n;  # n ^ 1
   let p = n;
   while true do {
     let p = p * n;
@@ -14,7 +14,7 @@ def produce n = {
 
 # Just print for now.
 def consume p = {
-  yield (); # Setup
+  yield (); # setup
   while true do {
     print (resume p);
     yield ();
