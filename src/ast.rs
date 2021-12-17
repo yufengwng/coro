@@ -1,15 +1,14 @@
-//! This module provides the abstract syntax tree (AST) data structures. It
-//! closely resembles the grammar as seen in `coro.pest` file.
+//! This module provides the abstract syntax tree (AST) data structures. It closely resembles the
+//! grammar as seen in `coro.pest` file.
 //!
-//! At a high-level AST items are stratified into 3 levels. At the top-level
-//! are "bindings". These bindings changes the environment namespace, and allow
-//! defining functions or declaring variables. Next are "commands", which ar
-//! essentially statements in procedural languages, except commands all produce
-//! values (although in some cases it's just unit). Lastly, we have the basic
-//! expressions. These are traditional expressions and all produce values.
+//! At a high-level AST items are stratified into 3 levels. At the top-level are "bindings". These
+//! bindings changes the environment namespace, and allow defining functions or declaring
+//! variables. Next are "commands", which are essentially statements in procedural languages,
+//! except commands all produce values (although in some cases it's just unit). Lastly, we have the
+//! basic expressions. These are traditional expressions and all produce values.
 //! 
-//! Expressions also allow "nesting", using group or block syntax, in order
-//! to recurse up the other levels.
+//! Expressions also have escape hatches (using groups and blocks) in order to recurse up to the
+//! other levels.
 
 #[derive(Debug)]
 pub struct Ast {

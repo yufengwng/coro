@@ -1,7 +1,7 @@
-//! This module provides data structures for the "linear instruction" language
-//! representation. The `Instr` enum specifies the exact set of instructions
-//! the Coro "VM" current supports. And the `Code` struct serves as the main
-//! container for these instruction code.
+//! This module provides data structures for the "instruction" representation.
+//!
+//! The `Instr` enum specifies the exact set of instructions the Coro "VM" currently supports. And
+//! the `Code` struct serves as the main container for these instruction code.
 
 use crate::value::Value;
 

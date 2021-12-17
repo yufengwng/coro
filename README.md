@@ -1,10 +1,11 @@
-## coro
+## `coro`
 
-An experiment in building a language that's based on coroutines.
+Coro: a language with first-class support for coroutines.
 
-The goal is to design and build a "toy" language that implements "asymmetric
-coroutines", as described in [1]. Currently, the language implementation is
-functional and provides all of the create/resume/yield features.
+The goal is to design and build a language that implements "asymmetric
+coroutines", as described in [1], supporting the core create/resume/yield
+operations. The language is meant to be a "toy" programming language, but the
+implementation should be mostly working well.
 
 ## Example
 
@@ -31,12 +32,12 @@ while i < 10 do {
 ## Building and Testing
 
 Use `cargo` to build, run, and test the implementation. There is also a
-Makefile for you convenience. There are a few debug features you can pass to
+Makefile for your convenience. There are a few debug features you can pass to
 `cargo`:
 
 * `ast` - prints the AST after parsing
 * `dbg` - general debugging, prints out result values, coroutine status, etc.
-* `instr` - print the compiled linear instructions for each functionta
+* `instr` - print the compiled linear instructions for each function
 * `stack` - print the value stack while executing instructions
 
 You can pass these to Cargo like so:
@@ -47,4 +48,4 @@ $ cargo run --features=ast,dbg,instr,stack
 
 ## References
 
-[1] A. L. D. Moura and R. Ierusalimschy, “Revisiting coroutines,” ACM Trans. Program. Lang. Syst., vol. 31, no. 2, Feb. 2009, issn: 0164-0925. doi: 10.1145/1462166.1462167. [Online]. Available: https://doi.acm.org/10.1145/1462166.1462167.
+[1] A. L. D. Moura and R. Ierusalimschy, “Revisiting coroutines,” ACM Trans. Program. Lang. Syst., vol. 31, no. 2, Feb. 2009, issn: 0164-0925. [Online]. Available: https://doi.acm.org/10.1145/1462166.1462167.

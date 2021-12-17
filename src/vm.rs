@@ -1,10 +1,9 @@
 //! This is the main entry point to executing Coro code.
 //! 
 //! The main design is the `Coro` struct, which represents a coroutine. In order to support the
-//! resume/yield functionalities of coroutines, we designed  coroutine objects to be mostly
-//! "self-contained". This means that `Coro` objects manage their own state and executes their
-//! own code. Thus, the "virtual machine" (VM) here is just a wrapper/helper for invoking
-//! coroutines.
+//! resume/yield functionalities of coroutines, coroutine objects are designed to be mostly
+//! "self-contained". This means that `Coro` objects manage their own state and executes their own
+//! code. Thus, the "virtual machine" (VM) here is just a wrapper/helper for invoking coroutines.
 
 use std::cell::RefCell;
 use std::collections::HashMap;

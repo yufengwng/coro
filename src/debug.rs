@@ -1,4 +1,4 @@
-//! A module that provides helper to debug Coro.
+//! A module that provides helpers to debug Coro.
 
 use crate::code::Code;
 use crate::code::Instr::*;
